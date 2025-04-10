@@ -1,29 +1,24 @@
-const axios = require('axios');
-
-const GITHUB_FILE_URL = 'https://raw.githubusercontent.com/utkarshxs/equal/refs/heads/main/Phone%20Number%20List.txt';
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST requests allowed' });
-  }
-
-  const { phone_number } = req.body;
-
-  if (!phone_number) {
-    return res.status(400).json({ error: 'Missing phone_number' });
-  }
-
+export default function handler(req, res) {
   try {
-    const response = await axios.get(GITHUB_FILE_URL);
-    const phoneList = response.data
-      .split('\n')
-      .map(num => num.trim())
-      .filter(Boolean);
+    if (req.method === 'POST') {
+      const { phone_number } = req.body;
 
-    const match = phoneList.includes(phone_number);
-    return res.status(200).json({ match });
+      // Basic check
+      if (!phone_number) {
+        return res.status(400).json({ error: 'Phone number is required' });
+      }
+
+      // For now, return dummy match
+      const hardcodedList = ['1234567890', '9876543210'];
+      const match = hardcodedList.includes(phone_number);
+
+      return res.status(200).json({ match });
+    } else {
+      res.setHeader('Allow', ['POST']);
+      return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    }
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Error in handler:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
